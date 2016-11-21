@@ -17,11 +17,16 @@ Remember passwords to keystore and certificate.
 Second, you need to setup SSL on your Tomcat. Open ${CATALINA_HOME}/conf/server.xml in any text editor.
 You have to do 2 things:
  - Comment the line with settings of AprLifecycleListener:
- ```<Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />```
+ ```
+ <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+ ```
  - Comment the default http connector. It look like:
- ```<Connector port="80" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" />```
+ ```
+ <Connector port="80" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" />
+ ```
  - Add new connector like this:
- ```<Connector SSLEnabled="true" 
+ ```
+ <Connector SSLEnabled="true" 
  			   keystoreFile="/Path/to/file/mykeystore.keystore"
  			   keystorePass="<YOUR_KEYSTORE_PASSWORD>"
  			   port="8443"
