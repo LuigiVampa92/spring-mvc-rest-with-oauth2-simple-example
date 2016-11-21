@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="1.0.0-01" author="pvasiliev">
+        <comment>Create OAuth2 data tables</comment>
+
+        <createTable tableName="OAUTH_ACCESS_TOKEN">
+            <column name="TOKEN_ID" type="VARCHAR(256)"/>
+            <column name="TOKEN" type="BLOB"/>
+            <column name="AUTHENTICATION_ID" type="VARCHAR(256)"/>
+            <column name="USER_NAME" type="VARCHAR(256)"/>
+            <column name="CLIENT_ID" type="VARCHAR(256)"/>
+            <column name="AUTHENTICATION" type="BLOB"/>
+            <column name="REFRESH_TOKEN" type="VARCHAR(256)"/>
+        </createTable>
+
+        <createTable tableName="OAUTH_CLIENT_DETAILS">
+            <column name="CLIENT_ID" type="VARCHAR(256)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="RESOURCE_IDS" type="VARCHAR(256)"/>
+            <column name="CLIENT_SECRET" type="VARCHAR(256)"/>
+            <column name="SCOPE" type="VARCHAR(256)"/>
+            <column name="AUTHORIZED_GRANT_TYPES" type="VARCHAR(256)"/>
+            <column name="WEB_SERVER_REDIRECT_URI" type="VARCHAR(256)"/>
+            <column name="AUTHORITIES" type="VARCHAR(256)"/>
+            <column name="ACCESS_TOKEN_VALIDITY" type="INT"/>
+            <column name="REFRESH_TOKEN_VALIDITY" type="INT"/>
+            <column name="ADDITIONAL_INFORMATION" type="VARCHAR(4096)"/>
+            <column name="AUTOAPPROVE" type="VARCHAR(256)"/>
+        </createTable>
+
+        <createTable tableName="OAUTH_CODE">
+            <column name="code" type="VARCHAR(256)"/>
+            <column name="authentication" type="BLOB"/>
+        </createTable>
+
+        <createTable tableName="OAUTH_REFRESH_TOKEN">
+            <column name="TOKEN_ID" type="VARCHAR(256)"/>
+            <column name="TOKEN" type="BLOB"/>
+            <column name="AUTHENTICATION" type="BLOB"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1.0.0-02" author="pvasiliev">
+        <comment>Create auth user data tables</comment>
+
+        <createTable tableName="USERS">
+            <column name="USERNAME" type="VARCHAR(50)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="PASSWORD" type="VARCHAR(100)"/>
+            <column name="ENABLED" type="BOOLEAN"/>
+        </createTable>
+
+        <createTable tableName="AUTHORITIES">
+            <column name="USERNAME" type="VARCHAR(50)"/>
+            <column name="AUTHORITY" type="VARCHAR(50)"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="AUTHORITIES"
+                                 baseColumnNames="USERNAME"
+                                 constraintName="FK_AUTHORITIES_USERS"
+                                 referencedTableName="USERS"
+                                 referencedColumnNames="USERNAME"
+                                 onDelete="CASCADE"/>
+
+        <createIndex catalogName="CAT"
+                     indexName="AUTHORITIES_IDX"
+                     tableName="AUTHORITIES"
+                     schemaName="PUBLIC"
+                     unique="true">
+            <column name="USERNAME" type="VARCHAR(50)"/>
+            <column name="AUTHORITY" type="VARCHAR(50)"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.0-03" author="pvasiliev">
+        <comment>Insert test auth user data (root:toor)</comment>
+
+        <insert tableName="USERS">
+            <column name="USERNAME">root</column>
+            <column name="PASSWORD">$2a$11$u6zg4zrDbTAIXcJd0m08O.B3LiT5iGd6nPzc57vh.PMaXmBQQ33FG</column>
+            <column name="ENABLED">true</column>
+        </insert>
+        <insert tableName="AUTHORITIES">
+            <column name="USERNAME">root</column>
+            <column name="AUTHORITY">ROLE_USER</column>
+        </insert>
+    </changeSet>
+    
+    <changeSet id="1.0.0-04" author="pvasiliev">
+        <comment>Insert test oauth app data (LifeUniverseEtc:42)</comment>
+        <insert tableName="OAUTH_CLIENT_DETAILS">
+            <column name="CLIENT_ID">LifeUniverseEtc</column>
+            <column name="RESOURCE_IDS" value="null"/>
+            <column name="CLIENT_SECRET">42</column>
+            <column name="SCOPE">read,write,trust</column>
+            <column name="AUTHORIZED_GRANT_TYPES">authorization_code,client_credentials,password,refresh_token,implicit</column>
+            <column name="WEB_SERVER_REDIRECT_URI" value="null"/>
+            <column name="AUTHORITIES" value="null"/>
+            <column name="ACCESS_TOKEN_VALIDITY" value="null"/>
+            <column name="REFRESH_TOKEN_VALIDITY" value="null"/>
+            <column name="ADDITIONAL_INFORMATION" value="null"/>
+            <column name="AUTOAPPROVE" value="null"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="1.0.0-05" author="pvasiliev">
+        <comment>Create user email table</comment>
+
+        <createTable tableName="USERS_EMAIL">
+            <column name="USERNAME" type="VARCHAR(50)"/>
+            <column name="EMAIL" type="VARCHAR(100)"/>
+            <column name="EMAIL_CONFORMATION_CODE" type="VARCHAR(100)"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="USERS_EMAIL"
+                                 baseColumnNames="USERNAME"
+                                 constraintName="FK_USERS_EMAIL"
+                                 referencedTableName="USERS"
+                                 referencedColumnNames="USERNAME"
+                                 onDelete="CASCADE"/>
+
+        <createIndex catalogName="CAT"
+                     indexName="USERS_EMAIL_IDX"
+                     tableName="USERS_EMAIL"
+                     schemaName="PUBLIC"
+                     unique="true">
+            <column name="USERNAME" type="VARCHAR(50)"/>
+            <column name="EMAIL" type="VARCHAR(100)"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.0-06" author="pvasiliev">
+        <comment>Create notes data table</comment>
+
+        <createSequence sequenceName="NOTES_SEQ"/>
+        <createTable tableName="NOTES">
+            <column name="ID" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="USERNAME" type="TEXT"/>
+            <column name="CREATION_DATE" type="DATE"/>
+            <column name="TEXT" type="TEXT"/>
+            <column name="COMMENT" type="TEXT"/>
+            <column name="DONE" type="BOOLEAN"/>
+            <column name="IMPORTANT" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
